@@ -48,6 +48,8 @@ Routing configuration (config/routes.rb):
 
 Corresponding API:
 
+| url              | action  | method      |
+|------------------|---------|-------------|
 | /users.json      | index   | GET         |
 | /users/{id}.json | show    | GET         |
 | /users.json      | create  | POST        |
