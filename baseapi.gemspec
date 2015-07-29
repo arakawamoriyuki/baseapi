@@ -7,11 +7,11 @@ Gem::Specification.new do |spec|
   spec.name          = "baseapi"
   spec.version       = Baseapi::VERSION
   spec.authors       = ["Moriyuki Arakawa"]
-  spec.email         = ["-----"]
+  spec.email         = ["fire_extinguisher-@ezweb.ne.jp"]
 
-  spec.summary       = %q{-----}
-  spec.description   = %q{-----}
-  spec.homepage      = ""
+  spec.summary       = %q{ruby on rails gem baseapi}
+  spec.description   = %q{ruby on rails gem baseapi}
+  spec.homepage      = "https://github.com/arakawamoriyuki/baseapi"
   spec.license       = "MIT"
 
   # Prevent pushing this gem to RubyGems.org by setting 'allowed_push_host', or
