@@ -32,7 +32,7 @@ Create a Model (app/models/user.rb):
 
 Extend the BaseApiController is when you create a Controller (app/controllers/users_controller.rb):
 
-    class CompaniesController < BaseApiController
+    class UsersController < BaseApiController
     end
 
 Routing configuration (config/routes.rb):
@@ -98,12 +98,14 @@ Specify multiple possible
     GET   /users.json?name[]=hoge&name[]=huga
 
 Specify the belongs to company name
+Note that this is a single
 
     GET   /users.json?company[name]=Google
 
 Specify the has many users name
+Note that this is a multiple
 
-    GET   /companies.json?user[name]=hoge
+    GET   /companies.json?users[name]=hoge
 
 #### action show
 
