@@ -48,11 +48,11 @@ Routing configuration (config/routes.rb):
 
 Corresponding API:
 
-    /users.json	      index	   GET
-    /users/{id}.json	show     GET
-    /users.json	      create   POST
-    /users/{id}.json	update   PUT
-    /users/{id}.json	destroy  DELETE
+| /users.json      | index   | GET         |
+| /users/{id}.json | show    | GET         |
+| /users.json      | create  | POST        |
+| /users/{id}.json | update  | PATCH / PUT |
+| /users/{id}.json | destroy | DELETE      |
 
 
 ### Examples
