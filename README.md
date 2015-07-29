@@ -71,8 +71,8 @@ Users table data
 
 | id | name     | company_id |
 |----|----------|------------|
-| 1  | arakawa  | 1          |
-| 2  | moriyuki | 2          |
+| 1  | hoge     | 1          |
+| 2  | huga     | 2          |
 
 Company table data
 
@@ -89,15 +89,15 @@ Get all
 
 Specify the name
 
-    GET   /users.json?name=arakawa
+    GET   /users.json?name=hoge
 
 Specify multiple possible
 
-    GET   /users.json?name[]=arakawa&name[]=moriyuki
+    GET   /users.json?name[]=hoge&name[]=huga
 
 Specify the belongs to company name
 
-    GET   /users.json?company[name]=arakawa
+    GET   /users.json?company[name]=Google
 
 Specify the has many users name
 
