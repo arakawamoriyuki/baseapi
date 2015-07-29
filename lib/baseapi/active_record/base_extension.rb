@@ -18,7 +18,7 @@ module ActiveRecordBaseExtension extend ActiveSupport::Concern
     # @param    String                column    column name
     # @param    Array                 values    search values
     def _where(models, column, values)
-      model.where!(column => values)
+      models.where!(column => values)
     end
 
     # override or create method '_belongs_to_{table}' if necessary
