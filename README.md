@@ -221,6 +221,32 @@ By default, it looks like the following
 
 The short so please read the [code](https://github.com/arakawamoriyuki/baseapi/blob/master/lib/baseapi/active_record/base_extension.rb) for more information
 
+
+### jbuilder
+
+It uses basically
+
+    /app/views/baseapi/ooo.json.jbuilder
+
+but you can also make
+
+    /app/views/{models}/ooo.json.jbuilder
+
+It will return to a single data (action:show,create,delete,update)
+
+    model.json.jbuilder
+
+It will return multiple data (action:index)
+
+    models.json.jbuilder
+
+It will return an error content
+
+    error.json.jbuilder
+
+[jbuilder details here](https://github.com/rails/jbuilder)
+
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `bin/console` for an interactive prompt that will allow you to experiment. Run `bundle exec baseapi` to use the code located in this directory, ignoring other installed copies of this gem.
