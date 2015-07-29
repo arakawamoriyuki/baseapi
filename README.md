@@ -98,11 +98,13 @@ Specify multiple possible
     GET   /users.json?name[]=hoge&name[]=huga
 
 Specify the belongs to company name
+
 Note that this is a single
 
     GET   /users.json?company[name]=Google
 
 Specify the has many users name
+
 Note that this is a multiple
 
     GET   /companies.json?users[name]=hoge
