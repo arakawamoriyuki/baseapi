@@ -89,6 +89,18 @@ Get all
 
     GET   /users.json
 
+Specify the count
+
+    GET   /users.json?count=10
+
+Specify the page
+
+    GET   /users.json?page=2
+
+Specify the sorting order
+
+    GET   /users.json?order=name&orderby=desc
+
 Specify the name
 
     GET   /users.json?name=hoge
