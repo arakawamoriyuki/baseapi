@@ -99,7 +99,7 @@ Specify the page
 
 Specify the sorting order
 
-    GET   /users.json?order=name&orderby=desc
+    GET   /users.json?order=desc&orderby=name
 
 Specify the name
 
