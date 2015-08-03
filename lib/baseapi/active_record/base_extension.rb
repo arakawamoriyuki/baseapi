@@ -13,13 +13,48 @@ module ActiveRecordBaseExtension extend ActiveSupport::Concern
       self.all
     end
 
+
     # override or create method '_where_{column}' if necessary
     # @param    ActiveRecordRelation  models
     # @param    String                column    column name
-    # @param    Array                 values    search values
+    # @param    Array/String          values    search values
     def _where(models, column, values)
-      models.where!(column => values)
+      column_match(models, column, values)
     end
+
+    # column exact match search
+    # @param    ActiveRecordRelation  models
+    # @param    String                column    column name
+    # @param    Array/String          values    search values
+    # @option   String                operator  'or' or 'and'
+    def column_match(models, column, values, operator:'or')
+      column_call(models, column, values, ->(column, value){
+        "#{column} = '#{value}'"
+      }, operator:operator)
+    end
+
+    # column like search
+    # @param    ActiveRecordRelation  models
+    # @param    String                column    column name
+    # @param    Array/String          values    search values
+    # @option   String                operator  'or' or 'and'
+    def column_like(models, column, values, operator:'or')
+      column_call(models, column, values, ->(column, value){
+        "#{column} like '%#{value}%'"
+      }, operator:operator)
+    end
+
+    # @param    ActiveRecordRelation  models
+    # @param    String                column    column name
+    # @param    Array/String          values    search values
+    # @param    Callable              callable
+    # @option   String                operator  orかand
+    def column_call(models, column, values, callable, operator:'or')
+      column_values = values.instance_of?(Array) ? values : [values]
+      models.where!(column_values.map{|value| callable.call(column, value)}.join(" #{operator} "))
+      models
+    end
+
 
     # override or create method '_belongs_to_{table}' if necessary
     # @param    ActiveRecordRelation  models
@@ -74,6 +109,7 @@ module ActiveRecordBaseExtension extend ActiveSupport::Concern
       end
       models
     end
+
 
     # get relation tables
     # @param  String  relate        'belongs_to','hasmany'..

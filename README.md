@@ -171,63 +171,92 @@ You can corresponding to the logical deletion, if you want to search condition t
 Get all
 
     class User < ActiveRecord::Base
-      def self._all
-      end
+      module ClassMethods
+        def self._all
+          self.all # default
+        end
     end
 
 delete
 
     class User < ActiveRecord::Base
       def _destroy
+        self.destroy # default
       end
     end
 
 column search
 
     class User < ActiveRecord::Base
-      def self._where(models, column, values)
-      end
+      module ClassMethods
+        def self._where(models, column, values)
+          column_match(models, column, values) # default
+        end
     end
 
 name column search
 
     class User < ActiveRecord::Base
-      def self._where_name(models, column, values)
-      end
+      module ClassMethods
+        def self._where_name(models, column, values)
+          column_match(models, column, values) # default
+        end
     end
 
 belongs_to search
 
     class User < ActiveRecord::Base
-      def self._belongs_to(models, table, hash)
-      end
+      module ClassMethods
+        def self._belongs_to(models, table, hash)
+          relation_match(models, table, hash) # default
+        end
     end
 
 company belongs_to search
 
     class User < ActiveRecord::Base
-      def self._belongs_to_company(models, table, hash)
-      end
+      module ClassMethods
+        def self._belongs_to_company(models, table, hash)
+          relation_match(models, table, hash) # default
+        end
     end
 
 has_many search
 
     class Company < ActiveRecord::Base
-      def self._has_many(models, table, hash)
-      end
+      module ClassMethods
+        def self._has_many(models, table, hash)
+          relation_match(models, table, hash) # default
+        end
     end
 
 users has_many search
 
     class Company < ActiveRecord::Base
-      def self._has_many_users(models, table, hash)
-      end
+      module ClassMethods
+        def self._has_many_users(models, table, hash)
+          relation_match(models, table, hash) # default
+        end
     end
 
 
-There is a useful function for the associated table Search
+There is a useful function for the table Search
 By default, it looks like the following
 'Like' search and, you can change the 'and' and 'or'
+
+Simply If you want to override the search processing of the name column
+column_match, you can use the column_like function.
+
+    class User < ActiveRecord::Base
+      def self._where_name(models, column, values)
+        column_match(models, column, values, operator:'or') # default is match OR
+        # column_like(models, column, values, operator:'or') # LIKE OR
+        # column_like(models, column, values, operator:'and') # LIKE AND
+      end
+    end
+
+If the search process of the related table is to override
+relation_match, you can use the relation_like function.
 
     class User < ActiveRecord::Base
       def self._belongs_to(models, table, hash)
