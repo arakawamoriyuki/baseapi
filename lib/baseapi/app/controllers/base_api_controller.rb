@@ -22,12 +22,14 @@ class BaseApiController < ActionController::Base
   # @return String  Json(Model)
   def create
     render 'model.json.jbuilder' if transaction(-> {
+      self.send("before_#{__method__}") if self.methods.include?("before_#{__method__}".to_sym)
       params.each do |key, value|
         if key.present? and value.present? and @Model.column_names.include?(key)
           @model.send("#{key}=", value)
         end
       end
       @model.save
+      self.send("after_#{__method__}") if self.methods.include?("after_#{__method__}".to_sym)
     })
   end
 
@@ -36,12 +38,14 @@ class BaseApiController < ActionController::Base
   # @return String  Json(Model)
   def update
     render 'model.json.jbuilder' if transaction(-> {
+      self.send("before_#{__method__}") if self.methods.include?("before_#{__method__}".to_sym)
       params.each do |key, value|
         if key.present? and value.present? and @Model.column_names.include?(key)
           @model.send("#{key}=", value)
         end
       end
       @model.save
+      self.send("after_#{__method__}") if self.methods.include?("after_#{__method__}".to_sym)
     })
   end
 
@@ -50,7 +54,9 @@ class BaseApiController < ActionController::Base
   # @return String  Json(Model)
   def destroy
     render 'model.json.jbuilder' if transaction(-> {
+      self.send("before_#{__method__}") if self.methods.include?("before_#{__method__}".to_sym)
       @model._destroy
+      self.send("after_#{__method__}") if self.methods.include?("after_#{__method__}".to_sym)
     })
   end
 

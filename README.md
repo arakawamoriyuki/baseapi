@@ -269,6 +269,27 @@ relation_match, you can use the relation_like function.
 The short so please read the [code](https://github.com/arakawamoriyuki/baseapi/blob/master/lib/baseapi/active_record/base_extension.rb) for more information
 
 
+
+### hook action
+
+Controller of 'create, update, destroy' function in advance by attaching the prefix of before, you can post processing
+
+    class UsersController < BaseApiController
+      def before_create
+        if params['name'].blank?
+          raise 'Please enter your name'
+        end
+      end
+    end
+
+And if not sent the name to api in the above example, it returns an error in the json. Message is a string that was passed to raise.
+
+    {
+      error: true,
+      message: "Please enter your name",
+    }
+
+
 ### jbuilder
 
 It uses basically

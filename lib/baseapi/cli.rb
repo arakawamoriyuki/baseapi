@@ -26,11 +26,7 @@ module Baseapi
 
       files.each do |file, path|
         src = File.expand_path("../app/#{path}/#{file}", __FILE__)
-        if File.exists?("app/#{path}/#{file}")
-          warn "[skip] app/#{path}/#{file} already exists"
-        else
-          FileUtils.cp(src, "app/#{path}/#{file}")
-        end
+        FileUtils.cp(src, "app/#{path}/#{file}")
       end
     end
   end
