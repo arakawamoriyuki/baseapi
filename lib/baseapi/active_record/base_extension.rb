@@ -29,7 +29,7 @@ module ActiveRecordBaseExtension extend ActiveSupport::Concern
     # @option   String                operator  'or' or 'and'
     def column_match(models, column, values, operator:'or')
       column_call(models, column, values, ->(column, value){
-        "#{column} = '#{value}'"
+        "#{models.name.pluralize.underscore}.#{column} = '#{value}'"
       }, operator:operator)
     end
 
@@ -40,7 +40,7 @@ module ActiveRecordBaseExtension extend ActiveSupport::Concern
     # @option   String                operator  'or' or 'and'
     def column_like(models, column, values, operator:'or')
       column_call(models, column, values, ->(column, value){
-        "#{column} like '%#{value}%'"
+        "#{models.name.pluralize.underscore}.#{column} like '%#{value}%'"
       }, operator:operator)
     end
 
