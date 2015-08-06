@@ -13,7 +13,7 @@ gem 'baseapi'
 
 And then execute:
 
-    $ bundle
+    $ bundle install
 
 Or install it yourself as:
 
@@ -95,7 +95,7 @@ Specify the count
 
 Specify the page
 
-    GET   /users.json?page=2
+    GET   /users.json?count=10&page=2
 
 Specify the sorting order
 
