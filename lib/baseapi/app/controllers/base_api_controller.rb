@@ -24,7 +24,7 @@ class BaseApiController < ActionController::Base
     render 'model.json.jbuilder' if transaction(-> {
       self.send("before_#{__method__}") if self.methods.include?("before_#{__method__}".to_sym)
       params.each do |key, value|
-        if key.present? and value.present? and @Model.column_names.include?(key)
+        if key.present? and @Model.column_names.include?(key)
           @model.send("#{key}=", value)
         end
       end
@@ -40,7 +40,7 @@ class BaseApiController < ActionController::Base
     render 'model.json.jbuilder' if transaction(-> {
       self.send("before_#{__method__}") if self.methods.include?("before_#{__method__}".to_sym)
       params.each do |key, value|
-        if key.present? and value.present? and @Model.column_names.include?(key)
+        if key.present? and @Model.column_names.include?(key)
           @model.send("#{key}=", value)
         end
       end
