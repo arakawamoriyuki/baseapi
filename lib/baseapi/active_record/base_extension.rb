@@ -29,7 +29,7 @@ module ActiveRecordBaseExtension extend ActiveSupport::Concern
     # @option   String                operator  'or' or 'and'
     def column_match(models, column, values, operator:'or')
       column_call(models, column, values, ->(column, value){
-        "#{models.name.pluralize.underscore}.#{column} = '#{value}'"
+        "#{getPrefix(value)} #{models.name.pluralize.underscore}.#{column} #{getOperator(value)} #{getValue(value, "'")}"
       }, operator:operator)
     end
 
@@ -40,7 +40,7 @@ module ActiveRecordBaseExtension extend ActiveSupport::Concern
     # @option   String                operator  'or' or 'and'
     def column_like(models, column, values, operator:'or')
       column_call(models, column, values, ->(column, value){
-        "#{models.name.pluralize.underscore}.#{column} like '%#{value}%'"
+        "#{getPrefix(value)} #{models.name.pluralize.underscore}.#{column} like #{getValue(value, "%", "'")}"
       }, operator:operator)
     end
 
@@ -79,7 +79,7 @@ module ActiveRecordBaseExtension extend ActiveSupport::Concern
     # @option   String                operator  'or' or 'and'
     def relation_match(models, table, hash, operator:'or')
       relation_call(models, table, hash, ->(table, column, value){
-        "#{table}.#{column} = '#{value}'"
+        "#{getPrefix(value)} #{table}.#{column} #{getOperator(value)} #{getValue(value, "'")}"
       }, operator:operator)
     end
 
@@ -90,7 +90,7 @@ module ActiveRecordBaseExtension extend ActiveSupport::Concern
     # @option   String                operator  'or' or 'and'
     def relation_like(models, table, hash, operator:'or')
       relation_call(models, table, hash, ->(table, column, value){
-        "#{table}.#{column} like '%#{value}%'"
+        "#{getPrefix(value)} #{table}.#{column} like #{getValue(value, "%", "'")}"
       }, operator:operator)
     end
 
@@ -108,6 +108,36 @@ module ActiveRecordBaseExtension extend ActiveSupport::Concern
         end
       end
       models
+    end
+
+    # get sql prefix 'NOT'
+    # @param  String  value
+    # @return String  value
+    def getPrefix(value)
+      (value[0] == '!') ? 'NOT' : ''
+    end
+
+    # return = or IS
+    # @param  String  value
+    # @return String  operator
+    def getOperator(value)
+      (value.gsub('!', '').upcase == 'NULL') ? 'IS' : '='
+    end
+
+    # slice '!' value
+    # @param  String  value
+    # @param  String  wraps ' or %
+    # @return String  value
+    def getValue(value, *wraps)
+      value.slice!(0) if value[0] == '!'
+      if value.upcase == 'NULL'
+        value = 'NULL'
+      else
+        wraps.each do |wrap|
+          value = "#{wrap}#{value}#{wrap}"
+        end
+      end
+      return value
     end
 
 

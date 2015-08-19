@@ -109,6 +109,14 @@ Specify multiple possible
 
     GET   /users.json?name[]=hoge&name[]=huga
 
+Specify the not id (v0.1.7~)
+
+    GET   /users.json?id=!1
+
+Of course the other is also possible (v0.1.7~)
+
+    GET   /users.json?name=!hoge
+
 Specify the belongs to company name
 
 Note that this is a single
@@ -240,6 +248,8 @@ users has_many search
     end
 
 
+### like & match, or & and Search (v0.1.3~)
+
 There is a useful function for the table Search
 By default, it looks like the following
 'Like' search and, you can change the 'and' and 'or'
@@ -270,14 +280,24 @@ The short so please read the [code](https://github.com/arakawamoriyuki/baseapi/b
 
 
 
-### hook action
+### hook action (v0.1.4~)
 
 Controller of 'create, update, destroy' function in advance by attaching the prefix of before, you can post processing
+Delete the related table or may be useful for error handling
+It may be good even before_action, but you may use if you want to process in the transaction.
+It is always surrounded by model of transaction.
 
-    class UsersController < BaseApiController
+    class CompaniesController < BaseApiController
+      # Name Required items
       def before_create
         if params['name'].blank?
           raise 'Please enter your name'
+        end
+      end
+      # delete the relation table
+      def before_destroy
+        User.where('company_id = ?', @model.id).each do |user|
+          user.destroy()
         end
       end
     end
