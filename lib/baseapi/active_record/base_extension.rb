@@ -29,7 +29,7 @@ module ActiveRecordBaseExtension extend ActiveSupport::Concern
     # @option   String                operator  'or' or 'and'
     def column_match(models, column, values, operator:'or')
       column_call(models, column, values, ->(column, value){
-        "#{getPrefix(value)} #{models.name.pluralize.underscore}.#{column} #{getOperator(value)} #{getValue(value, "'")}"
+        "#{getPrefix(value)} #{models.name.pluralize.underscore}.#{column} #{getOperator(value)} #{getValue("#{models.name.pluralize.underscore}.#{column}", value, "'")}"
       }, operator:operator)
     end
 
@@ -40,7 +40,7 @@ module ActiveRecordBaseExtension extend ActiveSupport::Concern
     # @option   String                operator  'or' or 'and'
     def column_like(models, column, values, operator:'or')
       column_call(models, column, values, ->(column, value){
-        "#{getPrefix(value)} #{models.name.pluralize.underscore}.#{column} like #{getValue(value, "%", "'")}"
+        "#{getPrefix(value)} #{models.name.pluralize.underscore}.#{column} #{getOperator(value, 'like')} #{getValue("#{models.name.pluralize.underscore}.#{column}", value, "%", "'")}"
       }, operator:operator)
     end
 
@@ -79,7 +79,7 @@ module ActiveRecordBaseExtension extend ActiveSupport::Concern
     # @option   String                operator  'or' or 'and'
     def relation_match(models, table, hash, operator:'or')
       relation_call(models, table, hash, ->(table, column, value){
-        "#{getPrefix(value)} #{table}.#{column} #{getOperator(value)} #{getValue(value, "'")}"
+        "#{getPrefix(value)} #{table}.#{column} #{getOperator(value)} #{getValue("#{table}.#{column}", value, "'")}"
       }, operator:operator)
     end
 
@@ -90,7 +90,7 @@ module ActiveRecordBaseExtension extend ActiveSupport::Concern
     # @option   String                operator  'or' or 'and'
     def relation_like(models, table, hash, operator:'or')
       relation_call(models, table, hash, ->(table, column, value){
-        "#{getPrefix(value)} #{table}.#{column} like #{getValue(value, "%", "'")}"
+        "#{getPrefix(value)} #{table}.#{column} #{getOperator(value, 'like')} #{getValue("#{table}.#{column}", value, "%", "'")}"
       }, operator:operator)
     end
 
@@ -120,24 +120,41 @@ module ActiveRecordBaseExtension extend ActiveSupport::Concern
     # return = or IS
     # @param  String  value
     # @return String  operator
-    def getOperator(value)
-      (value.gsub('!', '').upcase == 'NULL') ? 'IS' : '='
+    def getOperator(value, default = '=')
+      ['NULL', 'EMPTY'].include?(value.gsub('!', '').upcase) ? 'IS' : default
     end
 
     # slice '!' value
+    # @param  String  column
     # @param  String  value
     # @param  String  wraps ' or %
-    # @return String  value
-    def getValue(value, *wraps)
+    # @return String  value or sql
+    def getValue(column, value, *wraps)
+      original = value.clone
       value.slice!(0) if value[0] == '!'
       if value.upcase == 'NULL'
         value = 'NULL'
+      elsif value.upcase == 'EMPTY'
+        prefix = getPrefix(original)
+        operator = prefix == 'NOT' ? 'AND' : 'OR'
+        value = "NULL #{operator} #{prefix} #{column} = ''"
       else
+        value = getNaturalValue(value)
         wraps.each do |wrap|
           value = "#{wrap}#{value}#{wrap}"
         end
       end
       return value
+    end
+
+    # removal of the enclosing
+    # @param  String        value
+    # @return String        value
+    def getNaturalValue(value)
+      if ((/^[\'].+?[\']$/ =~ value) != nil) and ((/^[\"].+?[\"]$/ =~ value) != nil)
+        value.gsub!(/^[\'\"]/, '').gsub!(/[\'\"]$/, '')
+      end
+      value
     end
 
 

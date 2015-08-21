@@ -117,6 +117,28 @@ Of course the other is also possible (v0.1.7~)
 
     GET   /users.json?name=!hoge
 
+Specify the null name (v0.1.7~)
+
+    GET   /users.json?name=null
+
+Specify the not null name (v0.1.7~)
+
+    GET   /users.json?name=!null
+
+Specify the empty string and null name (v0.1.8~)
+
+    GET   /users.json?name=empty
+
+Specify the not empty string and null name (v0.1.8~)
+
+    GET   /users.json?name=!empty
+
+Specify search for simply string 'empty' (v0.1.8~)
+
+It can also be in double quotes "empty"
+
+    GET   /users.json?name='empty'
+
 Specify the belongs to company name
 
 Note that this is a single
