@@ -151,6 +151,12 @@ Note that this is a multiple
 
     GET   /companies.json?users[name]=hoge
 
+Relationships can now specify multiple (v0.1.9~)
+
+Specify the User belong to a development part company
+
+    GET   /users.json?company[units][name]=development
+
 #### action show
 
 Get id 1
@@ -251,6 +257,10 @@ company belongs_to search
         end
     end
 
+If there are multiple related belongs_to
+
+    def self._belongs_to_company_units_...(models, table, hash)
+
 has_many search
 
     class Company < ActiveRecord::Base
@@ -269,6 +279,9 @@ users has_many search
         end
     end
 
+If there are multiple related has_many
+
+    def self._has_many_users_families_...(models, table, hash)
 
 ### like & match, or & and Search (v0.1.3~)
 
@@ -291,7 +304,7 @@ If the search process of the related table is to override
 relation_match, you can use the relation_like function.
 
     class User < ActiveRecord::Base
-      def self._belongs_to(models, table, hash)
+      def self._belongs_to_company(models, table, hash)
         relation_match(models, table, hash, operator:'or') # default is match OR
         # relation_like(models, table, hash, operator:'or') # LIKE OR
         # relation_like(models, table, hash, operator:'and') # LIKE AND

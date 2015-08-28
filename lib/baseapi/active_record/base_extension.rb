@@ -13,7 +13,6 @@ module ActiveRecordBaseExtension extend ActiveSupport::Concern
       self.all
     end
 
-
     # override or create method '_where_{column}' if necessary
     # @param    ActiveRecordRelation  models
     # @param    String                column    column name
@@ -100,7 +99,6 @@ module ActiveRecordBaseExtension extend ActiveSupport::Concern
     # @param    Callable              callable
     # @option   String                operator  orかand
     def relation_call(models, table, hash, callable, operator:'or')
-      models.joins!(table.to_sym)
       hash.each do |column, value|
         if column.present? and value.present?
           relation_values = value.instance_of?(Array) ? value : [value]

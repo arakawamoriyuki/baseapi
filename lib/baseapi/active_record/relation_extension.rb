@@ -4,9 +4,9 @@ module ActiveRecordRelationExtension
   # @param  Hash    params
   def filtering!(params)
     models = self
-    associations = self.model.get_associations()
     params.each do |key, value|
       if key.present? and value.present?
+        # this model search
         if column_names.include?(key)
           # array change
           values = value.instance_of?(Array) ? value : [value]
@@ -14,15 +14,30 @@ module ActiveRecordRelationExtension
           # call function
           function_name = self.model.methods.include?("_where_#{key}".to_sym) ? "_where_#{key}" : '_where'
           models = self.model.send(function_name, models, key, values)
-        end
-
         # belongs_to, has_many search
-        associations.keys.each do |association|
-          if associations[association].include?(key) and value.instance_of?(ActionController::Parameters)#hash型はActionController::Parameters
-            # call function
-            function_name = self.model.methods.include?("_#{association}_#{key}".to_sym) ? "_#{association}_#{key}" : "_#{association}"
-            models = self.model.send(function_name, models, key, value)
-          end
+        else
+          relationSearch = -> (models, currentModel, key, value, joins = []) {
+            associations = currentModel.get_associations()
+            associations.keys.each do |association|
+              if currentModel.column_names.include?(key)
+                # call function
+                function_name = self.model.methods.include?("_#{association}_#{joins.join('_')}".to_sym) ? "_#{association}_#{joins.join('_')}" : "_#{association}"
+                table_name = currentModel.name.underscore
+                hash = {key => value}
+                return self.model.send(function_name, models, table_name, hash)
+              elsif associations[association].include?(key)
+                joins.push key
+                models.joins_array!(joins)
+                currentModel = key.camelize.singularize.constantize
+                value.each do |k, v|
+                  # this fnuction collback
+                  models = relationSearch.call(models, currentModel, k, v, joins)
+                end
+              end
+            end
+            return models
+          }
+          models = relationSearch.call(models, self.model, key, value)
         end
       end
     end
@@ -50,5 +65,21 @@ module ActiveRecordRelationExtension
     if params[:order].present? and params[:orderby].present?
       order!({params[:orderby] => params[:order]})
     end
+  end
+
+
+  # joins as array params
+  # @param  array    param
+  def joins_array!(joins)
+    param = nil
+    joins.reverse.each_with_index do |join, index|
+      join = join.to_sym
+      if index == 0
+        param = join
+      else
+        param = {join => param}
+      end
+    end
+    joins!(param)
   end
 end
