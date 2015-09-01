@@ -157,6 +157,30 @@ Specify the User belong to a development part company
 
     GET   /users.json?company[units][name]=development
 
+Specify it more 20~ (v0.1.11~)
+
+    GET   /users.json?age=>=20
+
+Specify it less ~20 (v0.1.11~)
+
+    GET   /users.json?age=<=20
+
+Specify between 2015/09/01 ~ 2015/09/31 (v0.1.11~)
+
+    GET   /users.json?created_at[]=>=20150901&created_at[]=<=20150931
+
+  Multiple conditions is "OR Search" by default
+
+  Multiple conditions is "AND Search" and must
+
+  provide a method such as the following to the model in advance
+
+    class User < ActiveRecord::Base
+      def self._where_created_at(models, column, values)
+        column_match(models, column, values, operator:'and')
+      end
+    end
+
 #### action show
 
 Get id 1

@@ -119,7 +119,14 @@ module ActiveRecordBaseExtension extend ActiveSupport::Concern
     # @param  String  value
     # @return String  operator
     def getOperator(value, default = '=')
-      ['NULL', 'EMPTY'].include?(value.gsub('!', '').upcase) ? 'IS' : default
+      operator = default
+      value = value.sub('!', '')
+      if ['NULL', 'EMPTY'].include?(value.upcase)
+        operator = 'IS'
+      elsif value.length >= 2 and ['<=', '>='].include?(value[0..1])
+        operator = value[0..1]
+      end
+      operator
     end
 
     # slice '!' value
@@ -136,6 +143,8 @@ module ActiveRecordBaseExtension extend ActiveSupport::Concern
         prefix = getPrefix(original)
         operator = prefix == 'NOT' ? 'AND' : 'OR'
         value = "NULL #{operator} #{prefix} #{column} = ''"
+      elsif value.length >= 2 and ['<=', '>='].include?(value[0..1])
+        value = value.sub('<=', '').sub('>=', '')
       else
         value = getNaturalValue(value)
         wraps.each do |wrap|
