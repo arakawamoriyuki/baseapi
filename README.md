@@ -223,6 +223,27 @@ Delete the id to 1
       ]
     }
 
+### reserved word (v0.1.13~)
+
+We are using the following as a reserved word.
+
+- count
+- page
+- order
+- orderby
+
+It can not be used as a column name in the database.
+
+But, you can be avoided by specifying the prefix.
+
+    class User < ActiveRecord::Base
+      @reserved_word_prefix = '_'
+    end
+
+You can request as follows in doing so
+
+    GET   /users.json?_count=10&_page=2
+
 ### Override
 
 You can corresponding to the logical deletion, if you want to search condition to like and or, you will be able to override the processing in the Model

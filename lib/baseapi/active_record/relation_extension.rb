@@ -16,24 +16,24 @@ module ActiveRecordRelationExtension
           models = self.model.send(function_name, models, key, values)
         # belongs_to, has_many search
         else
-          relationSearch = -> (models, currentModel, key, value, prifix = '', joins = []) {
+          relationSearch = -> (models, currentModel, key, value, prefix = '', joins = []) {
             joins.push key
             associations = currentModel.get_associations()
             associations.keys.each do |association|
               if currentModel.column_names.include?(key)
                 # call function
-                function_name = self.model.methods.include?("_#{prifix}_#{joins.join('_')}".to_sym) ? "_#{prifix}_#{joins.join('_')}" : "_#{prifix}"
+                function_name = self.model.methods.include?("_#{prefix}_#{joins.join('_')}".to_sym) ? "_#{prefix}_#{joins.join('_')}" : "_#{prefix}"
                 table_name = currentModel.name.underscore
                 hash = {key => value}
                 return self.model.send(function_name, models, table_name, hash)
               elsif associations[association].include?(key)
-                # prifix = first association
-                prifix = association if prifix == ''
+                # prefix = first association
+                prefix = association if prefix == ''
                 models.joins_array!(joins)
                 currentModel = key.camelize.singularize.constantize
                 value.each do |k, v|
                   # this fnuction collback
-                  models = relationSearch.call(models, currentModel, k, v, prifix, joins)
+                  models = relationSearch.call(models, currentModel, k, v, prefix, joins)
                 end
               end
             end
@@ -49,8 +49,9 @@ module ActiveRecordRelationExtension
   # pager
   # @param  Hash    params
   def paging!(params)
-    count = params[:count].present? ? params[:count].to_i : -1;
-    page = params[:page].present? ? params[:page].to_i : 1;
+    prefix = self.model.get_reserved_word_prefix
+    count = params["#{prefix}count".to_sym].present? ? params["#{prefix}count".to_sym].to_i : -1;
+    page = params["#{prefix}page".to_sym].present? ? params["#{prefix}page".to_sym].to_i : 1;
     if count > 0
       if count.present? and count
         limit!(count)
@@ -64,8 +65,9 @@ module ActiveRecordRelationExtension
   # sort
   # @param  Hash    params
   def sorting!(params)
-    if params[:order].present? and params[:orderby].present?
-      order!({params[:orderby] => params[:order]})
+    prefix = self.model.get_reserved_word_prefix
+    if params["#{prefix}order".to_sym].present? and params["#{prefix}orderby".to_sym].present?
+      order!({params["#{prefix}orderby".to_sym] => params["#{prefix}order".to_sym]})
     end
   end
 

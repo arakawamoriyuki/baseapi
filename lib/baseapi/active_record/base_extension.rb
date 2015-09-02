@@ -1,11 +1,19 @@
 module ActiveRecordBaseExtension extend ActiveSupport::Concern
 
+  @reserved_word_prefix = ''
+
   # override if necessary
   def _destroy
     destroy
   end
 
   module ClassMethods
+
+    # reserved word prefix(count,page,order,orderby...)
+    # @return String
+    def get_reserved_word_prefix
+      @reserved_word_prefix
+    end
 
     # override if necessary
     # @return ActiveRecordRelation
