@@ -161,9 +161,17 @@ Specify it more 20~ (v0.1.12~)
 
     GET   /users.json?age=>=20
 
+Specify the excess (v0.1.14~)
+
+    GET   /users.json?age=>20
+
 Specify it less ~20 (v0.1.12~)
 
     GET   /users.json?age=<=20
+
+Specify the less than (v0.1.14~)
+
+    GET   /users.json?age=<20
 
 Specify between 2015/09/01 ~ 2015/09/31 (v0.1.12~)
 
