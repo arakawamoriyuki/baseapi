@@ -157,15 +157,15 @@ Specify the User belong to a development part company
 
     GET   /users.json?company[units][name]=development
 
-Specify it more 20~ (v0.1.11~)
+Specify it more 20~ (v0.1.12~)
 
     GET   /users.json?age=>=20
 
-Specify it less ~20 (v0.1.11~)
+Specify it less ~20 (v0.1.12~)
 
     GET   /users.json?age=<=20
 
-Specify between 2015/09/01 ~ 2015/09/31 (v0.1.11~)
+Specify between 2015/09/01 ~ 2015/09/31 (v0.1.12~)
 
     GET   /users.json?created_at[]=>=20150901&created_at[]=<=20150931
 
@@ -281,7 +281,7 @@ company belongs_to search
         end
     end
 
-If there are multiple related belongs_to
+If there are multiple related belongs_to (v0.1.12~)
 
     def self._belongs_to_company_units_...(models, table, hash)
 
@@ -303,7 +303,7 @@ users has_many search
         end
     end
 
-If there are multiple related has_many
+If there are multiple related has_many (v0.1.12~)
 
     def self._has_many_users_families_...(models, table, hash)
 

@@ -16,22 +16,24 @@ module ActiveRecordRelationExtension
           models = self.model.send(function_name, models, key, values)
         # belongs_to, has_many search
         else
-          relationSearch = -> (models, currentModel, key, value, joins = []) {
+          relationSearch = -> (models, currentModel, key, value, prifix = '', joins = []) {
+            joins.push key
             associations = currentModel.get_associations()
             associations.keys.each do |association|
               if currentModel.column_names.include?(key)
                 # call function
-                function_name = self.model.methods.include?("_#{association}_#{joins.join('_')}".to_sym) ? "_#{association}_#{joins.join('_')}" : "_#{association}"
+                function_name = self.model.methods.include?("_#{prifix}_#{joins.join('_')}".to_sym) ? "_#{prifix}_#{joins.join('_')}" : "_#{prifix}"
                 table_name = currentModel.name.underscore
                 hash = {key => value}
                 return self.model.send(function_name, models, table_name, hash)
               elsif associations[association].include?(key)
-                joins.push key
+                # prifix = first association
+                prifix = association if prifix == ''
                 models.joins_array!(joins)
                 currentModel = key.camelize.singularize.constantize
                 value.each do |k, v|
                   # this fnuction collback
-                  models = relationSearch.call(models, currentModel, k, v, joins)
+                  models = relationSearch.call(models, currentModel, k, v, prifix, joins)
                 end
               end
             end
