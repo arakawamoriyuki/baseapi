@@ -38,12 +38,7 @@ Extend the BaseApiController is when you create a Controller (app/controllers/us
 Routing configuration (config/routes.rb):
 
     constraints(:format => /json/) do
-      get     "users"       => "users#index"
-      get     "users/:id"   => "users#show"
-      post    "users"       => "users#create"
-      patch   "users/:id"   => "users#update"
-      put     "users/:id"   => "users#update"
-      delete  "users/:id"   => "users#destroy"
+      resources :users, only:[:index, :show, :create, :update, :destroy]
     end
 
 Corresponding API:
