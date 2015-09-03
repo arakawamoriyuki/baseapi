@@ -83,94 +83,115 @@ Company table data
 Get all
 
     GET   /users.json
+    SQL   =>  SELECT DISTINCT `users`.* FROM `users`
 
 Specify the count
 
     GET   /users.json?count=10
+    SQL   =>  SELECT DISTINCT `users`.* FROM `users` LIMIT 10 OFFSET 0
 
 Specify the page
 
     GET   /users.json?count=10&page=2
+    SQL   =>  SELECT DISTINCT `users`.* FROM `users` LIMIT 10 OFFSET 10
 
 Specify the sorting order
 
     GET   /users.json?order=desc&orderby=name
+    SQL   =>  SELECT DISTINCT `users`.* FROM `users` ORDER BY `users`.`name` DESC
 
 Specify the name
 
     GET   /users.json?name=hoge
+    SQL   =>  SELECT DISTINCT `users`.* FROM `users` WHERE ( users.name = 'hoge')
 
 Specify multiple possible
 
     GET   /users.json?name[]=hoge&name[]=huga
+    SQL   =>  SELECT DISTINCT `users`.* FROM `users` WHERE ( users.name = 'hoge' or users.name = 'huga')
 
 Specify the not id (v0.1.7~)
 
     GET   /users.json?id=!1
+    SQL   =>  SELECT DISTINCT `users`.* FROM `users` WHERE (NOT users.id = '1')
 
 Of course the other is also possible (v0.1.7~)
 
     GET   /users.json?name=!hoge
+    SQL   =>  SELECT DISTINCT `users`.* FROM `users` WHERE (NOT users.name = 'hoge')
 
 Specify the null name (v0.1.7~)
 
     GET   /users.json?name=null
+    SQL   =>  SELECT DISTINCT `users`.* FROM `users` WHERE ( users.name IS NULL)
 
 Specify the not null name (v0.1.7~)
 
     GET   /users.json?name=!null
+    SQL   =>  SELECT DISTINCT `users`.* FROM `users` WHERE (NOT users.name IS NULL)
 
 Specify the empty string and null name (v0.1.8~)
 
     GET   /users.json?name=empty
+    SQL   =>  SELECT DISTINCT `users`.* FROM `users` WHERE ( users.name IS NULL OR users.name = '')
 
 Specify the not empty string and null name (v0.1.8~)
 
     GET   /users.json?name=!empty
+    SQL   =>  SELECT DISTINCT `users`.* FROM `users` WHERE (NOT users.name IS NULL AND NOT users.name = '')
 
 Specify search for simply string 'empty' (v0.1.8~)
 
 It can also be in double quotes "empty"
 
     GET   /users.json?name='empty'
+    SQL   =>  SELECT DISTINCT `users`.* FROM `users` WHERE ( workers.name = 'empty')
 
 Specify the belongs to company name
 
 Note that this is a single
 
     GET   /users.json?company[name]=Google
+    SQL   =>  SELECT DISTINCT `users`.* FROM `users` ...JOIN... WHERE ( companies.name = 'Google')
 
 Specify the has many users name
 
 Note that this is a multiple
 
     GET   /companies.json?users[name]=hoge
+    SQL   =>  SELECT DISTINCT `companies`.* FROM `companies` ...JOIN... WHERE ( users.name = 'hoge')
 
 Relationships can now specify multiple (v0.1.9~)
 
 Specify the User belong to a development part company
 
     GET   /users.json?company[units][name]=development
+    SQL   =>  SELECT DISTINCT `users`.* FROM `users` ...JOIN... WHERE ( units.name = 'development')
 
 Specify it more 20~ (v0.1.12~)
 
     GET   /users.json?age=>=20
+    SQL   =>  SELECT DISTINCT `users`.* FROM `users` WHERE ( users.age >= 20)
 
 Specify the excess (v0.1.14~)
 
     GET   /users.json?age=>20
+    SQL   =>  SELECT DISTINCT `users`.* FROM `users` WHERE ( users.age > 20)
 
 Specify it less ~20 (v0.1.12~)
 
     GET   /users.json?age=<=20
+    SQL   =>  SELECT DISTINCT `users`.* FROM `users` WHERE ( users.age <= 20)
 
 Specify the less than (v0.1.14~)
 
     GET   /users.json?age=<20
+    SQL   =>  SELECT DISTINCT `users`.* FROM `users` WHERE ( users.age < 20)
 
 Specify between 2015/09/01 ~ 2015/09/31 (v0.1.12~)
 
     GET   /users.json?created_at[]=>=20150901&created_at[]=<=20150931
+    SQL   =>  SELECT DISTINCT `users`.* FROM `users` WHERE ( users.created_at >= 20150901 and users.created_at <= 20150931)
 
   Multiple conditions is "OR Search" by default
 
@@ -189,12 +210,14 @@ Specify between 2015/09/01 ~ 2015/09/31 (v0.1.12~)
 Get id 1
 
     GET   /users/1.json
+    SQL   =>  SELECT `users`.* FROM `users` WHERE `users`.`id` = 1
 
 #### action create
 
 Create a user name is 'hoge'
 
     POST   /users.json?name=hoge
+    SQL   =>  INSERT INTO `example`.`users` (`id`, `name`) VALUES (NULL, 'hoge')
 
 #### action update
 
@@ -202,14 +225,18 @@ Update the name to 'huga'
 
     PATCH  /users/1.json?name=huga
     PUT    /users/1.json?name=huga
+    SQL   =>  UPDATE `example`.`users` SET `name` = 'huga' WHERE `users`.`id` = 1
 
 #### action delete
 
 Delete the id to 1
 
     DELETE /users/1.json
+    SQL   =>  DELETE FROM `example`.`users` WHERE `users`.`id` = 1
 
 #### return json format
+
+index
 
     {
       error: false,
@@ -224,6 +251,17 @@ Delete the id to 1
           name: "huga"
         }
       ]
+    }
+
+show, create, update, destroy
+
+    {
+      error: false,
+      message: "",
+      data: {
+        id: 1,
+        name: "hoge"
+      }
     }
 
 ### reserved word (v0.1.13~)

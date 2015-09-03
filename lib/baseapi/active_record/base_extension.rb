@@ -128,13 +128,14 @@ module ActiveRecordBaseExtension extend ActiveSupport::Concern
     # @return String  operator
     def getOperator(value, default = '=')
       operator = default
-      value.slice!(0) if value[0] == '!'
-      if ['NULL', 'EMPTY'].include?(value.upcase)
+      val = value.clone
+      val.slice!(0) if val[0] == '!'
+      if ['NULL', 'EMPTY'].include?(val.upcase)
         operator = 'IS'
-      elsif value.length >= 2 and ['<=', '>='].include?(value[0..1])
-        operator = value[0..1]
-      elsif ['<', '>'].include?(value[0])
-        operator = value[0]
+      elsif val.length >= 2 and ['<=', '>='].include?(val[0..1])
+        operator = val[0..1]
+      elsif ['<', '>'].include?(val[0])
+        operator = val[0]
       end
       operator
     end
@@ -143,37 +144,39 @@ module ActiveRecordBaseExtension extend ActiveSupport::Concern
     # @param  String  column
     # @param  String  value
     # @param  String  wraps ' or %
-    # @return String  value or sql
+    # @return String  val or sql
     def getValue(column, value, *wraps)
       original = value.clone
-      value.slice!(0) if value[0] == '!'
-      if value.upcase == 'NULL'
-        value = 'NULL'
-      elsif value.upcase == 'EMPTY'
+      val = value.clone
+      val.slice!(0) if val[0] == '!'
+      if val.upcase == 'NULL'
+        val = 'NULL'
+      elsif val.upcase == 'EMPTY'
         prefix = getPrefix(original)
         operator = prefix == 'NOT' ? 'AND' : 'OR'
-        value = "NULL #{operator} #{prefix} #{column} = ''"
-      elsif value.length >= 2 and ['<=', '>='].include?(value[0..1])
-        value = value.sub(value[0..1], '')
+        val = "NULL #{operator} #{prefix} #{column} = ''"
+      elsif val.length >= 2 and ['<=', '>='].include?(val[0..1])
+        val.sub!(val[0..1], '')
       elsif ['<', '>'].include?(value[0])
-        value = value.sub(value[0], '')
+        val.sub!(val[0], '')
       else
-        value = getNaturalValue(value)
+        val = getNaturalValue(val)
         wraps.each do |wrap|
-          value = "#{wrap}#{value}#{wrap}"
+          val = "#{wrap}#{val}#{wrap}"
         end
       end
-      return value
+      return val
     end
 
     # removal of the enclosing
     # @param  String        value
-    # @return String        value
+    # @return String        val
     def getNaturalValue(value)
-      if ((/^[\'].+?[\']$/ =~ value) != nil) and ((/^[\"].+?[\"]$/ =~ value) != nil)
-        value.gsub!(/^[\'\"]/, '').gsub!(/[\'\"]$/, '')
+      val = value.clone
+      if ((/^[\'].+?[\']$/ =~ val) != nil) or ((/^[\"].+?[\"]$/ =~ val) != nil)
+        val = val[1..val.length-2]
       end
-      value
+      val
     end
 
 
