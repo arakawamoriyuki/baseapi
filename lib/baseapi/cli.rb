@@ -6,7 +6,7 @@ require 'fileutils'
 module Baseapi
   class CLI < Thor
 
-    desc "Base API setup", "create BaseApiController and jbuilder view."
+    desc "Base API setup", "create jbuilder view."
     def setup
       dir = [
         'app/views/base_api'
@@ -18,7 +18,6 @@ module Baseapi
       end
 
       files = {
-        'base_api_controller.rb'  => 'controllers',
         'error.json.jbuilder'     => 'views/base_api',
         'model.json.jbuilder'     => 'views/base_api',
         'models.json.jbuilder'    => 'views/base_api',

@@ -22,6 +22,7 @@ Or install it yourself as:
 ## Usage
 
 Introduction create a BaseApiController & JBuilder of view:
+(0.1.16~)
 
     $ bundle exec baseapi setup
 
