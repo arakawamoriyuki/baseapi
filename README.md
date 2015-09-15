@@ -435,7 +435,7 @@ And if not sent the name to api in the above example, it returns an error in the
 
 ### jbuilder
 
-create JBuilder of view
+create JBuilder of view (0.1.17)
 
     $ bundle exec baseapi setup users companies ...
 
