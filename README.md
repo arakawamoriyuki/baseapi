@@ -21,7 +21,7 @@ Or install it yourself as:
 
 ## Usage
 
-Introduction create a BaseApiController & JBuilder of view:
+Introduction create a BaseApiController & default JBuilder of view:
 
 BaseApiController are now loaded with automatic(0.1.16~)
 
@@ -435,7 +435,11 @@ And if not sent the name to api in the above example, it returns an error in the
 
 ### jbuilder
 
-It uses basically
+create JBuilder of view
+
+    $ bundle exec baseapi setup users companies ...
+
+Used by default
 
     /app/views/baseapi/ooo.json.jbuilder
 

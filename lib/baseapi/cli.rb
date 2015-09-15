@@ -7,25 +7,29 @@ module Baseapi
   class CLI < Thor
 
     desc "Base API setup", "create jbuilder view."
-    def setup
-      dir = [
-        'app/views/base_api'
-      ]
-      dir.each do |path|
-        if !Dir.exists?(path)
-          Dir.mkdir(path)
+    def setup(*controllers)
+      controllers.push 'base_api'
+      controllers.uniq!
+      controllers.each do |controller|
+        dir = [
+          "app/views/#{controller}"
+        ]
+        dir.each do |path|
+          if !Dir.exists?(path)
+            Dir.mkdir(path)
+          end
         end
-      end
 
-      files = {
-        'error.json.jbuilder'     => 'views/base_api',
-        'model.json.jbuilder'     => 'views/base_api',
-        'models.json.jbuilder'    => 'views/base_api',
-      }
+        files = [
+          'error.json.jbuilder',
+          'model.json.jbuilder',
+          'models.json.jbuilder',
+        ]
 
-      files.each do |file, path|
-        src = File.expand_path("../app/#{path}/#{file}", __FILE__)
-        FileUtils.cp(src, "app/#{path}/#{file}")
+        files.each do |file|
+          src = File.expand_path("../app/views/base_api/#{file}", __FILE__)
+          FileUtils.cp(src, "app/views/#{controller}/#{file}")
+        end
       end
     end
   end
