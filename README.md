@@ -295,10 +295,9 @@ You can corresponding to the logical deletion, if you want to search condition t
 Get all
 
     class User < ActiveRecord::Base
-      module ClassMethods
-        def self._all
-          self.all # default
-        end
+      def self._all
+        self.all # default
+      end
     end
 
 delete
@@ -312,64 +311,66 @@ delete
 column search
 
     class User < ActiveRecord::Base
-      module ClassMethods
-        def self._where(models, column, values)
-          column_match(models, column, values) # default
-        end
+      def self._where(models, column, values)
+        column_match(models, column, values) # default
+      end
     end
 
 name column search
 
     class User < ActiveRecord::Base
-      module ClassMethods
-        def self._where_name(models, column, values)
-          column_match(models, column, values) # default
-        end
+      def self._where_name(models, column, values)
+        column_match(models, column, values) # default
+      end
     end
 
 belongs_to search
 
     class User < ActiveRecord::Base
-      module ClassMethods
-        def self._belongs_to(models, table, hash)
-          relation_match(models, table, hash) # default
-        end
+      def self._belongs_to(models, table, hash)
+        relation_match(models, table, hash) # default
+      end
     end
 
 company belongs_to search
 
     class User < ActiveRecord::Base
-      module ClassMethods
-        def self._belongs_to_company(models, table, hash)
-          relation_match(models, table, hash) # default
-        end
+      def self._belongs_to_company(models, table, hash)
+        relation_match(models, table, hash) # default
+      end
     end
 
 If there are multiple related belongs_to (v0.1.12~)
 
-    def self._belongs_to_company_units_...(models, table, hash)
+    class User < ActiveRecord::Base
+      def self._belongs_to_company_units_...(models, table, hash)
+        relation_match(models, table, hash) # default
+      end
+    end
 
 has_many search
 
     class Company < ActiveRecord::Base
-      module ClassMethods
-        def self._has_many(models, table, hash)
-          relation_match(models, table, hash) # default
-        end
+      def self._has_many(models, table, hash)
+        relation_match(models, table, hash) # default
+      end
     end
 
 users has_many search
 
     class Company < ActiveRecord::Base
-      module ClassMethods
-        def self._has_many_users(models, table, hash)
-          relation_match(models, table, hash) # default
-        end
+      def self._has_many_users(models, table, hash)
+        relation_match(models, table, hash) # default
+      end
     end
 
 If there are multiple related has_many (v0.1.12~)
 
-    def self._has_many_users_families_...(models, table, hash)
+    class Company < ActiveRecord::Base
+      def self._has_many_users_families_...(models, table, hash)
+        relation_match(models, table, hash) # default
+      end
+    end
 
 ### like & match, or & and Search (v0.1.3~)
 
