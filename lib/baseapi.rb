@@ -10,3 +10,6 @@ ActiveRecord::Base.send(:include, ActiveRecordBaseExtension)
 
 # ActionController::Base Extension
 require 'baseapi/app/controllers/base_api_controller'
+
+# baseapi module
+require 'baseapi/app/controllers/concerns/base_api'
