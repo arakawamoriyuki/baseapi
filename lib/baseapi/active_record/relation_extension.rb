@@ -67,7 +67,33 @@ module ActiveRecordRelationExtension
   def sorting!(params)
     prefix = self.model.get_reserved_word_prefix
     if params["#{prefix}order".to_sym].present? and params["#{prefix}orderby".to_sym].present?
-      order!({params["#{prefix}orderby".to_sym] => params["#{prefix}order".to_sym]})
+      # array exchange
+      orderby = params["#{prefix}orderby".to_sym]
+      orderbys = orderby.instance_of?(Array) ? orderby : [orderby]
+      order = params["#{prefix}order".to_sym]
+      orders = order.instance_of?(Array) ? order : [order]
+      # multiple order
+      orderbys.each_with_index do |orderby, index|
+        if orders[index].present? and ['DESC', 'ASC'].include?(orders[index].upcase)
+          order = orders[index].upcase
+          # dot notation  example: company.name
+          joins_tables = orderby.split(".")
+          column_name = joins_tables.pop
+          table_name = joins_tables.count > 0 ? joins_tables.last.pluralize.underscore : ''
+          # joins_tables exists check
+          joins_tables.each do |table|
+            next unless ActiveRecord::Base.connection.tables.include?(table.pluralize.underscore)
+          end
+          # table_name exists check
+          next unless ActiveRecord::Base.connection.tables.include?(table_name)
+          # column_name exists check
+          next unless table_name.camelize.singularize.constantize.column_names.include?(column_name)
+          # joins
+          joins_array!(joins_tables)
+          # order
+          order!("#{table_name}#{table_name.present? ? '.' : ''}#{column_name} #{order}")
+        end
+      end
     end
   end
 
