@@ -107,7 +107,7 @@ Specify the multiple sorting order (v0.1.22~)
     GET   /users.json?order[]=desc&order[]=asc&orderby[]=name&orderby[]=company_id
     SQL   =>  SELECT DISTINCT `users`.* FROM `users` ORDER BY `users`.`name` DESC, `users`.`company_id` ASC
 
-Specify the association sorting order[^1] (v0.1.22~)
+Specify the association sorting order[^1] (v0.1.23~)
 
     GET   /users.json?order=asc&orderby=company.name
     SQL   =>  SELECT DISTINCT `users`.* FROM `users` ...JOIN... ORDER BY `companies`.`name` ASC

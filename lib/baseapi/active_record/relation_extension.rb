@@ -84,16 +84,10 @@ module ActiveRecordRelationExtension
           joins_tables.each do |table|
             next if !ActiveRecord::Base.connection.tables.include?(table.pluralize.underscore)
           end
-          # check
-          if table_name.present?
-            # table exists check
-            next !ActiveRecord::Base.connection.tables.include?(table_name)
-            # column_name exists check
-            next if !table_name.camelize.singularize.constantize.column_names.include?(column_name)
-          else
-            # column_name exists check
-            next if !self.model.column_names.include?(column_name)
-          end
+          # table exists check
+          next if !ActiveRecord::Base.connection.tables.include?(table_name)
+          # column_name exists check
+          next if !table_name.camelize.singularize.constantize.column_names.include?(column_name)
           # joins
           joins_array!(joins_tables)
           # order
