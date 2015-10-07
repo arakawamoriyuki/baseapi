@@ -276,6 +276,43 @@ show, create, update, destroy
       }
     }
 
+### Module (0.1.20~)
+
+If you want to create a View is also inclusive controller, please include a BaseApi.
+index and show must be the process branches case of json request.
+
+    class UsersController < ApplicationController
+
+      # baseapi module
+      include BaseApi
+
+      def index
+        if request.format.json?
+          # json request
+          return render 'models.json.jbuilder'
+        else
+          # html request
+        end
+      end
+
+      def show
+        if request.format.json?
+          # json request
+          return render 'model.json.jbuilder'
+        else
+          # html request
+        end
+      end
+
+      # html request
+      def new
+      end
+
+      # html request
+      def edit
+      end
+    end
+
 ### reserved word (v0.1.13~)
 
 We are using the following as a reserved word.

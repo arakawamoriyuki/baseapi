@@ -1,6 +1,10 @@
 module BaseApi extend ActiveSupport::Concern
 
   included do
+    # verify the value of CSRF countermeasures for Token
+    # API to skip the verify_authenticity_token
+    skip_before_filter :verify_authenticity_token, if: :json_request?
+
     before_action :set_Model
     before_action :set_models, only: [:index]
     before_action :set_model, only: [:show, :create, :update, :destroy]
@@ -92,5 +96,11 @@ module BaseApi extend ActiveSupport::Concern
         return false
       end
       return true
+    end
+
+    # is json request
+    # @return bool
+    def json_request?
+      request.format.json?
     end
 end
