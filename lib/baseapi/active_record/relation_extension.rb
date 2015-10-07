@@ -79,14 +79,15 @@ module ActiveRecordRelationExtension
           # dot notation  example: company.name
           joins_tables = orderby.split(".")
           column_name = joins_tables.pop
-          table_name = joins_tables.count > 0 ? joins_tables.last.pluralize.underscore : ''
+          table_name = joins_tables.count > 0 ? joins_tables.last.pluralize.underscore : self.model.to_s.pluralize.underscore
           # joins_tables exists check
           joins_tables.each do |table|
             next if !ActiveRecord::Base.connection.tables.include?(table.pluralize.underscore)
           end
+          # check
           if table_name.present?
             # table exists check
-            next if table_name.present? and !ActiveRecord::Base.connection.tables.include?(table_name)
+            next !ActiveRecord::Base.connection.tables.include?(table_name)
             # column_name exists check
             next if !table_name.camelize.singularize.constantize.column_names.include?(column_name)
           else
@@ -96,7 +97,7 @@ module ActiveRecordRelationExtension
           # joins
           joins_array!(joins_tables)
           # order
-          order!("#{table_name}#{table_name.present? ? '.' : ''}#{column_name} #{order}")
+          order!("`#{table_name}`.`#{column_name}` #{order}")
         end
       end
     end

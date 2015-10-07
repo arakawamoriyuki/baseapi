@@ -102,15 +102,15 @@ Specify the sorting order
     GET   /users.json?order=desc&orderby=name
     SQL   =>  SELECT DISTINCT `users`.* FROM `users` ORDER BY `users`.`name` DESC
 
-Specify the multiple sorting order (v0.1.21~)
+Specify the multiple sorting order (v0.1.22~)
 
     GET   /users.json?order[]=desc&order[]=asc&orderby[]=name&orderby[]=company_id
-    SQL   =>  SELECT DISTINCT `users`.* FROM `users` ORDER BY name DESC, company_id ASC
+    SQL   =>  SELECT DISTINCT `users`.* FROM `users` ORDER BY `users`.`name` DESC, `users`.`company_id` ASC
 
-Specify the association sorting order (v0.1.21~)
+Specify the association sorting order[^1] (v0.1.22~)
 
     GET   /users.json?order=asc&orderby=company.name
-    SQL   =>  SELECT DISTINCT `users`.* FROM `users` ...JOIN... ORDER BY companies.name ASC
+    SQL   =>  SELECT DISTINCT `users`.* FROM `users` ...JOIN... ORDER BY `companies`.`name` ASC
 
 Specify the name
 
@@ -509,6 +509,11 @@ It will return an error content
 
 [jbuilder details here](https://github.com/rails/jbuilder)
 
+
+## TODO
+
+[^1]: orderby associated with foreign_key
+*1 : orderby associated with foreign_key
 
 ## Development
 
