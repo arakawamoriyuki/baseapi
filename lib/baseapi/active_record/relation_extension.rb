@@ -81,9 +81,11 @@ module ActiveRecordRelationExtension
           column_name = joins_tables.pop
           table_name = joins_tables.count > 0 ? joins_tables.last.pluralize.underscore : self.model.to_s.pluralize.underscore
           # joins_tables exists check
+          is_next = false
           joins_tables.each do |table|
-            next if !ActiveRecord::Base.connection.tables.include?(table.pluralize.underscore)
+            is_next = true and break if !ActiveRecord::Base.connection.tables.include?(table.pluralize.underscore)
           end
+          next if is_next
           # table exists check
           next if !ActiveRecord::Base.connection.tables.include?(table_name)
           # column_name exists check
