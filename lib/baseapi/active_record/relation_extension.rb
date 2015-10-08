@@ -80,20 +80,46 @@ module ActiveRecordRelationExtension
           joins_tables = orderby.split(".")
           column_name = joins_tables.pop
           table_name = joins_tables.count > 0 ? joins_tables.last.pluralize.underscore : self.model.to_s.pluralize.underscore
-          # joins_tables exists check
-          is_next = false
-          joins_tables.each do |table|
-            is_next = true and break if !ActiveRecord::Base.connection.tables.include?(table.pluralize.underscore)
+          # table_name parent table
+          parent_table_name = joins_tables.count > 1 ? joins_tables.last(2).first : self.model.to_s.pluralize.underscore
+          # parent_table get association
+          association = parent_table_name.camelize.singularize.constantize.reflect_on_association(table_name.singularize)
+          # If you have specified class_name in belongs_to method (for example, you have changed the foreign key)
+          # example:
+          # class Project < ActiveRecord::Base
+          #   belongs_to :manager, foreign_key: 'manager_id', class_name: 'User'
+          #   belongs_to :leader,  foreign_key: 'leader_id',  class_name: 'User'
+          # end
+          if association and association.options[:class_name].present?
+            association_table_name = association.options[:class_name].pluralize.underscore
+            table_alias = table_name.pluralize.underscore
+            # check
+            next if !ActiveRecord::Base.connection.tables.include?(association_table_name)
+            # join
+            joins!("INNER JOIN `#{association_table_name}` AS `#{table_alias}` ON `#{table_alias}`.`id` = `#{parent_table_name}`.`#{table_alias.singularize}_id`")
+            # order
+            order!("`#{table_alias}`.`#{column_name}` #{order}")
+          # belongs_to along the rails convention
+          # example:
+          # class Project < ActiveRecord::Base
+          #   belongs_to :manager
+          # end
+          else
+            # joins_tables exists check
+            is_next = false
+            joins_tables.each do |table|
+              is_next = true and break if !ActiveRecord::Base.connection.tables.include?(table.pluralize.underscore)
+            end
+            next if is_next
+            # table exists check
+            next if !ActiveRecord::Base.connection.tables.include?(table_name)
+            # column_name exists check
+            next if !table_name.camelize.singularize.constantize.column_names.include?(column_name)
+            # joins
+            joins_array!(joins_tables)
+            # order
+            order!("`#{table_name}`.`#{column_name}` #{order}")
           end
-          next if is_next
-          # table exists check
-          next if !ActiveRecord::Base.connection.tables.include?(table_name)
-          # column_name exists check
-          next if !table_name.camelize.singularize.constantize.column_names.include?(column_name)
-          # joins
-          joins_array!(joins_tables)
-          # order
-          order!("`#{table_name}`.`#{column_name}` #{order}")
         end
       end
     end
