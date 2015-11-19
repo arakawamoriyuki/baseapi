@@ -215,6 +215,9 @@ module ActiveRecordBaseExtension extend ActiveSupport::Concern
         end
       end
 
+      # recursive empty delete
+      clean_hash!(params)
+
       # filter
       models.filtering!(params)
 
@@ -225,6 +228,20 @@ module ActiveRecordBaseExtension extend ActiveSupport::Concern
       models.sorting!(params)
 
       return models.uniq
+    end
+
+    # hash params empty delete
+    # @param  hash    param
+    def clean_hash!(param)
+      recursive_delete_if = -> (param) {
+        param.each do |key, value|
+          if value.is_a?(Hash)
+            recursive_delete_if.call(value)
+          end
+        end
+        param.delete_if { |k, v| v.blank? }
+      }
+      recursive_delete_if.call(param) if param.is_a?(Hash)
     end
   end
 end
