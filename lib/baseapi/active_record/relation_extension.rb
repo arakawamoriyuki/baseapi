@@ -17,7 +17,6 @@ module ActiveRecordRelationExtension
         # belongs_to, has_many search
         else
           relationSearch = -> (models, currentModel, key, value, prefix = '', joins = []) {
-            joins.push key
             associations = currentModel.get_associations()
             associations.keys.each do |association|
               if currentModel.column_names.include?(key)
@@ -29,11 +28,12 @@ module ActiveRecordRelationExtension
               elsif associations[association].include?(key)
                 # prefix = first association
                 prefix = association if prefix == ''
+                joins.push key
                 models.joins_array!(joins)
                 currentModel = key.camelize.singularize.constantize
                 value.each do |k, v|
                   # this fnuction collback
-                  models = relationSearch.call(models, currentModel, k, v, prefix, joins)
+                  relationSearch.call(models, currentModel, k, v, prefix, joins)
                 end
               end
             end
