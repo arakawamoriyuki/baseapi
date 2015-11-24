@@ -21,7 +21,9 @@ module ActiveRecordRelationExtension
             associations.keys.each do |association|
               if currentModel.column_names.include?(key)
                 # call function
-                function_name = self.model.methods.include?("_#{prefix}_#{joins.join('_')}".to_sym) ? "_#{prefix}_#{joins.join('_')}" : "_#{prefix}"
+                function_chains = joins.clone
+                function_chains.push key
+                function_name = self.model.methods.include?("_#{prefix}_#{function_chains.join('_')}".to_sym) ? "_#{prefix}_#{function_chains.join('_')}" : "_#{prefix}"
                 table_name = currentModel.name.underscore
                 hash = {key => value}
                 return self.model.send(function_name, models, table_name, hash)
