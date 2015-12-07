@@ -21,9 +21,7 @@ Or install it yourself as:
 
 ## Usage
 
-Introduction create a BaseApiController & default JBuilder of view:
-
-BaseApiController are now loaded with automatic(0.1.16~)
+Introduction create default JBuilder of view:
 
     $ bundle exec baseapi setup
 
@@ -489,7 +487,7 @@ create JBuilder of view (0.1.17)
 
 Used by default
 
-    /app/views/baseapi/ooo.json.jbuilder
+    /app/views/application/ooo.json.jbuilder
 
 but you can also make
 

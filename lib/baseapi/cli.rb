@@ -8,7 +8,7 @@ module Baseapi
 
     desc "Base API setup", "create jbuilder view."
     def setup(*controllers)
-      controllers.push 'base_api'
+      controllers.push 'application'
       controllers.uniq!
       controllers.each do |controller|
         dir = [
