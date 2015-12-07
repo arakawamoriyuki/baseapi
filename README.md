@@ -485,9 +485,10 @@ create JBuilder of view (0.1.17)
 
     $ bundle exec baseapi setup users companies ...
 
-Used by default
+Used by default [^2]
 
-    /app/views/application/ooo.json.jbuilder
+    /app/views/application/ooo.json.jbuilder # if include BaseApi
+    /app/views/base_api/ooo.json.jbuilder # if extend BaseApi
 
 but you can also make
 
@@ -511,7 +512,7 @@ It will return an error content
 ## TODO
 
 [^1]: orderby associated with foreign_key
-*1 : orderby associated with foreign_key
+[^2]: unify the default viewpath of extend and include
 
 ## Development
 
