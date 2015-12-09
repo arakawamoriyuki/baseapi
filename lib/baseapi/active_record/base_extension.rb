@@ -47,7 +47,7 @@ module ActiveRecordBaseExtension extend ActiveSupport::Concern
     # @option   String                operator  'or' or 'and'
     def column_like(models, column, values, operator:'or')
       column_call(models, column, values, ->(column, value){
-        "#{getPrefix(value)} #{models.name.pluralize.underscore}.#{column} #{getOperator(value, 'like')} #{getValue("#{models.name.pluralize.underscore}.#{column}", value, "%", "'")}"
+        "#{getPrefix(value)} #{models.name.pluralize.underscore}.#{column} #{getOperator(value, 'like')} #{getValue("#{models.name.pluralize.underscore}.#{column}", escape_like(value), "%", "'")}"
       }, operator:operator)
     end
 
@@ -97,7 +97,7 @@ module ActiveRecordBaseExtension extend ActiveSupport::Concern
     # @option   String                operator  'or' or 'and'
     def relation_like(models, table, hash, operator:'or')
       relation_call(models, table, hash, ->(table, column, value){
-        "#{getPrefix(value)} #{table}.#{column} #{getOperator(value, 'like')} #{getValue("#{table}.#{column}", value, "%", "'")}"
+        "#{getPrefix(value)} #{table}.#{column} #{getOperator(value, 'like')} #{getValue("#{table}.#{column}", escape_like(value), "%", "'")}"
       }, operator:operator)
     end
 
@@ -177,6 +177,13 @@ module ActiveRecordBaseExtension extend ActiveSupport::Concern
         val = val[1..val.length-2]
       end
       val
+    end
+
+    # escape like
+    # @param  String
+    # @return String
+    def escape_like(string)
+      string.gsub(/[\\%_]/){|m| "\\#{m}"}
     end
 
 
