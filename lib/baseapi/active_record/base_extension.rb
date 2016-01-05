@@ -215,13 +215,6 @@ module ActiveRecordBaseExtension extend ActiveSupport::Concern
     def search(params)
       models = self._all
 
-      # load
-      self.get_associations().each do |association_key, relations|
-        relations.each do |relation|
-          models.includes!(relation.to_sym)
-        end
-      end
-
       # recursive empty delete
       clean_hash!(params)
 
