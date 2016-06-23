@@ -1,7 +1,6 @@
 # Baseapi
 
-When you create a web application in the rails, If you want to CRUD operations in Ajax, might this gem is useful.
-We only define the empty Controller and Model for us to define the CRUD in.
+Restful API Controller can make simply by include the Baseapi module to your Controller.
 
 ## Installation
 
@@ -21,21 +20,22 @@ Or install it yourself as:
 
 ## Usage
 
-Introduction create default JBuilder of view:
+Introduction create default JBuilder of view.
 
     $ bundle exec baseapi setup
 
-Create a Model (app/models/user.rb):
+Create a Model (app/models/user.rb)
 
     class User < ActiveRecord::Base
     end
 
-Extend the BaseApiController is when you create a Controller (app/controllers/users_controller.rb):
+include the Baseapi module to Controller (app/controlers/users_controller.rb)
 
-    class UsersController < BaseApiController
+    class UsersController < ApplicationController
+      include BaseApi
     end
 
-Routing configuration (config/routes.rb):
+Routing configuration (config/routes.rb)
 
     constraints(:format => /json/) do
       resources :users, only:[:index, :show, :create, :update, :destroy]
@@ -334,8 +334,7 @@ You can request as follows in doing so
 
 ### Override
 
-You can corresponding to the logical deletion, if you want to search condition to like and or, you will be able to override the processing in the Model
-
+you will be able to override the processing in the Model.
 
 Get all
 
@@ -451,10 +450,7 @@ The short so please read the [code](https://github.com/arakawamoriyuki/baseapi/b
 
 ### hook action (v0.1.4~)
 
-Controller of 'create, update, destroy' function in advance by attaching the prefix of before, you can post processing
-Delete the related table or may be useful for error handling
-It may be good even before_action, but you may use if you want to process in the transaction.
-It is always surrounded by model of transaction.
+Controller of 'create, update, destroy' function in advance by attaching the prefix of before, you can post processing.
 
     class CompaniesController < BaseApiController
       # Name Required items
@@ -471,7 +467,8 @@ It is always surrounded by model of transaction.
       end
     end
 
-And if not sent the name to api in the above example, it returns an error in the json. Message is a string that was passed to raise.
+And if not sent the name to api in the above example, it returns an error in the json.
+Message is a string that was passed to raise.
 
     {
       error: true,
@@ -487,18 +484,18 @@ create JBuilder of view (0.1.17)
 
 Used by default [^2]
 
-    /app/views/application/ooo.json.jbuilder # if include BaseApi
-    /app/views/base_api/ooo.json.jbuilder # if extend BaseApi
+    /app/views/application/xxx.json.jbuilder # if include BaseApi
+    /app/views/base_api/xxx.json.jbuilder # if extend BaseApi
 
 but you can also make
 
-    /app/views/{models}/ooo.json.jbuilder
+    /app/views/{models}/xxx.json.jbuilder
 
-It will return to a single data (action:show,create,delete,update)
+It will return to a single data (action: show, create, delete, update)
 
     model.json.jbuilder
 
-It will return multiple data (action:index)
+It will return multiple data (action: index)
 
     models.json.jbuilder
 
