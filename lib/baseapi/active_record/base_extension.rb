@@ -9,6 +9,30 @@ module ActiveRecordBaseExtension extend ActiveSupport::Concern
 
   module ClassMethods
 
+    # @param    Hash          params    getparams
+    #             String/Array  {column}  search column value
+    #             String        orderby   order column
+    #             String        order     sort order ('asc' or 'desc')
+    #             Integer       count     page count (all = '0' or '-1')
+    #             Integer       page      paged
+    def search(params)
+      models = self._all
+
+      # recursive empty delete
+      clean_hash!(params)
+
+      # filter
+      models.filtering!(params)
+
+      # pager
+      models.paging!(params)
+
+      # sort
+      models.sorting!(params)
+
+      return models.uniq
+    end
+
     # reserved word prefix(count,page,order,orderby...)
     # @return String
     def get_reserved_word_prefix
@@ -34,10 +58,9 @@ module ActiveRecordBaseExtension extend ActiveSupport::Concern
     # @param    String                column    column name
     # @param    Array/String          values    search values
     # @option   String                operator  'or' or 'and'
-    def column_match(models, column, values, operator:'or')
-      column_call(models, column, values, ->(column, value){
-        "#{getPrefix(value)} #{models.name.pluralize.underscore}.#{column} #{getOperator(value)} #{getValue("#{models.name.pluralize.underscore}.#{column}", value, "'")}"
-      }, operator:operator)
+    def column_match(models, column, values, operator: 'or')
+      callable = arel_match(self)
+      column_call(models, column, values, callable, operator: operator)
     end
 
     # column like search
@@ -46,22 +69,26 @@ module ActiveRecordBaseExtension extend ActiveSupport::Concern
     # @param    Array/String          values    search values
     # @option   String                operator  'or' or 'and'
     def column_like(models, column, values, operator:'or')
-      column_call(models, column, values, ->(column, value){
-        "#{getPrefix(value)} #{models.name.pluralize.underscore}.#{column} #{getOperator(value, 'like')} #{getValue("#{models.name.pluralize.underscore}.#{column}", escape_like(value), "%", "'")}"
-      }, operator:operator)
+      callable = arel_like(self)
+      column_call(models, column, values, callable, operator: operator)
     end
 
     # @param    ActiveRecordRelation  models
     # @param    String                column    column name
     # @param    Array/String          values    search values
-    # @param    Callable              callable
-    # @option   String                operator  orかand
+    # @param    Callable              callable  Arel
     def column_call(models, column, values, callable, operator:'or')
+      base_arel = nil
       column_values = values.instance_of?(Array) ? values : [values]
-      models.where!(column_values.map{|value| callable.call(column, value)}.join(" #{operator} "))
+      column_values.each do |value|
+        if column.present? and value.present?
+          arel = callable.call(column, value)
+          base_arel = arel_merge(base_arel, arel, operator: operator)
+        end
+      end
+      models.where!(base_arel)
       models
     end
-
 
     # override or create method '_belongs_to_{table}' if necessary
     # @param    ActiveRecordRelation  models
@@ -84,10 +111,9 @@ module ActiveRecordBaseExtension extend ActiveSupport::Concern
     # @param    String                table     table name
     # @param    Hash                  hash      column name => search values
     # @option   String                operator  'or' or 'and'
-    def relation_match(models, table, hash, operator:'or')
-      relation_call(models, table, hash, ->(table, column, value){
-        "#{getPrefix(value)} #{table}.#{column} #{getOperator(value)} #{getValue("#{table}.#{column}", value, "'")}"
-      }, operator:operator)
+    def relation_match(models, table, hash, operator: 'or')
+      callable = arel_match(table.camelize.singularize.constantize)
+      relation_call(models, hash, callable, operator: operator)
     end
 
     # like search
@@ -95,97 +121,31 @@ module ActiveRecordBaseExtension extend ActiveSupport::Concern
     # @param    String                table     table name
     # @param    Hash                  hash      column name => search values
     # @option   String                operator  'or' or 'and'
-    def relation_like(models, table, hash, operator:'or')
-      relation_call(models, table, hash, ->(table, column, value){
-        "#{getPrefix(value)} #{table}.#{column} #{getOperator(value, 'like')} #{getValue("#{table}.#{column}", escape_like(value), "%", "'")}"
-      }, operator:operator)
+    def relation_like(models, table, hash, operator: 'or')
+      callable = arel_like(table.camelize.singularize.constantize)
+      relation_call(models, hash, callable, operator: operator)
     end
 
     # @param    ActiveRecordRelation  models
-    # @param    String                table     table name
     # @param    Hash                  hash      column name => search values
-    # @param    Callable              callable
-    # @option   String                operator  orかand
-    def relation_call(models, table, hash, callable, operator:'or')
-      hash.each do |column, value|
-        if column.present? and value.present?
-          relation_values = value.instance_of?(Array) ? value : [value]
-          models.where!(relation_values.map{|value| callable.call(table.pluralize, column, value)}.join(" #{operator} "))
+    # @param    Callable              callable  Arel
+    # @option   String                operator  'or' or 'and'
+    def relation_call(models, hash, callable, operator:'or')
+      base_arel = nil
+      hash.each do |column, values|
+        if column.present? and values.present?
+          relation_values = values.instance_of?(Array) ? values : [values]
+          relation_values.each do |value|
+            if column.present? and value.present?
+              arel = callable.call(column, value)
+              base_arel = arel_merge(base_arel, arel, operator: operator)
+            end
+          end
         end
       end
+      models.where!(base_arel)
       models
     end
-
-    # get sql prefix 'NOT'
-    # @param  String  value
-    # @return String  value
-    def getPrefix(value)
-      (value[0] == '!') ? 'NOT' : ''
-    end
-
-    # return = or IS
-    # @param  String  value
-    # @return String  operator
-    def getOperator(value, default = '=')
-      operator = default
-      val = value.clone
-      val.slice!(0) if val[0] == '!'
-      if ['NULL', 'EMPTY'].include?(val.upcase)
-        operator = 'IS'
-      elsif val.length >= 2 and ['<=', '>='].include?(val[0..1])
-        operator = val[0..1]
-      elsif ['<', '>'].include?(val[0])
-        operator = val[0]
-      end
-      operator
-    end
-
-    # slice '!' value
-    # @param  String  column
-    # @param  String  value
-    # @param  String  wraps ' or %
-    # @return String  val or sql
-    def getValue(column, value, *wraps)
-      original = value.clone
-      val = value.clone
-      val.slice!(0) if val[0] == '!'
-      if val.upcase == 'NULL'
-        val = 'NULL'
-      elsif val.upcase == 'EMPTY'
-        prefix = getPrefix(original)
-        operator = prefix == 'NOT' ? 'AND' : 'OR'
-        val = "NULL #{operator} #{prefix} #{column} = ''"
-      elsif val.length >= 2 and ['<=', '>='].include?(val[0..1])
-        val.sub!(val[0..1], '')
-      elsif ['<', '>'].include?(value[0])
-        val.sub!(val[0], '')
-      else
-        val = getNaturalValue(val)
-        wraps.each do |wrap|
-          val = "#{wrap}#{val}#{wrap}"
-        end
-      end
-      return val
-    end
-
-    # removal of the enclosing
-    # @param  String        value
-    # @return String        val
-    def getNaturalValue(value)
-      val = value.clone
-      if ((/^[\'].+?[\']$/ =~ val) != nil) or ((/^[\"].+?[\"]$/ =~ val) != nil)
-        val = val[1..val.length-2]
-      end
-      val
-    end
-
-    # escape like
-    # @param  String
-    # @return String
-    def escape_like(string)
-      string.gsub(/[\\%_]/){|m| "\\#{m}"}
-    end
-
 
     # get relation tables
     # @param  String  relate        'belongs_to','hasmany'..
@@ -206,42 +166,160 @@ module ActiveRecordBaseExtension extend ActiveSupport::Concern
     end
 
 
-    # @param    Hash          params    getparams
-    #             String/Array  {column}  search column value
-    #             String        orderby   order column
-    #             String        order     sort order ('asc' or 'desc')
-    #             Integer       count     page count (all = '0' or '-1')
-    #             Integer       page      paged
-    def search(params)
-      models = self._all
 
-      # recursive empty delete
-      clean_hash!(params)
+    private
 
-      # filter
-      models.filtering!(params)
+      # create arel like
+      # @param  Model     model_class   ActiveRecord class
+      # @return Callable                create arel function
+      def arel_like(model_class)
+        return ->(column, value){
+          arel = model_class.arel_table[column.to_sym]
+          arel = arel.matches("%#{escape_value(value)}%")
+          arel = arel.not if value_is_not?(value)
+          arel
+        }
+      end
 
-      # pager
-      models.paging!(params)
-
-      # sort
-      models.sorting!(params)
-
-      return models.uniq
-    end
-
-    # hash params empty delete
-    # @param  hash    param
-    def clean_hash!(param)
-      recursive_delete_if = -> (param) {
-        param.each do |key, value|
-          if value.is_a?(Hash)
-            recursive_delete_if.call(value)
+      # create arel match
+      # @param  Model model_class   ActiveRecord class
+      # @return Callable            create arel function
+      def arel_match(model_class)
+        return ->(column, value){
+          arel = model_class.arel_table[column.to_sym]
+          if value_is_null?(value)
+            arel = arel.eq(nil)
+          elsif value_is_empty?(value)
+            arel = arel.eq(nil).send('or', model_class.arel_table[column.to_sym].eq(''))
+          elsif value_is_sign?(value)
+            arel = arel.send(get_sign_method(get_sign(value)), escape_value(value))
+          else
+            arel = arel.eq(escape_value(value))
           end
+          arel = arel.not if value_is_not?(value)
+          arel
+        }
+      end
+
+      # create arel match
+      # @param  Arel  base_arel   base arel
+      # @param  Arel  arel        merge target arel
+      # @return Arel              merged arel object
+      def arel_merge(base_arel, arel, operator: 'or')
+        return arel if base_arel.nil?
+        base_arel.send(operator, arel)
+      end
+
+      # escape `!`
+      # @param  String  value
+      # @return String
+      def escape_not_value(value)
+        value = value[1..value.length-1] if value[0] == '!'
+        return value
+      end
+
+      # escape `>`,`<`,`=<`,`=>`
+      # @param  String  value
+      # @return String
+      def escape_sign_value(value)
+        if value.length >= 2 and ['<=', '>='].include?(value[0..1])
+          value = value[2..value.length-1]
+        elsif ['<', '>'].include?(value[0])
+          value = value[1..value.length-1]
         end
-        param.delete_if { |k, v| v.blank? }
-      }
-      recursive_delete_if.call(param) if param.is_a?(Hash)
-    end
+        return value
+      end
+
+      # escape `'`,`"`
+      # @param  String  value
+      # @return String
+      def escape_quotation_value(value)
+        if ((/^[\'].+?[\']$/ =~ value) != nil) or ((/^[\"].+?[\"]$/ =~ value) != nil)
+          value = value[1..value.length-2]
+        end
+        return value
+      end
+
+      # removal of the `!`,`>`,`<`,`=>`,`=<`,`'`,`"`
+      # @param  String  value
+      # @return String
+      def escape_value(value)
+        value = escape_not_value(value)
+        value = escape_sign_value(value)
+        value = escape_quotation_value(value)
+        return value
+      end
+
+      # request not?
+      # @param  String  value
+      # @return Boolean
+      def value_is_not?(value)
+        value[0] == '!'
+      end
+
+      # request null?
+      # @param  String  value
+      # @return Boolean
+      def value_is_null?(value)
+        escape_not_value(value).upcase == 'NULL'
+      end
+
+      # request empty?
+      # @param  String  value
+      # @return Boolean
+      def value_is_empty?(value)
+        escape_not_value(value).upcase == 'EMPTY'
+      end
+
+      # request less or greater?
+      # @param  String  value
+      # @return Boolean
+      def value_is_sign?(value)
+        value = escape_not_value(value)
+        value.length >= 2 and ['<=', '>='].include?(value[0..1]) || ['<', '>'].include?(value[0])
+      end
+
+      # get less or greater
+      # @param  String  value
+      # @return String  sign    > or < or => or <=
+      def get_sign(value)
+        value = escape_not_value(value)
+        if value.length >= 2 and ['<=', '>='].include?(value[0..1])
+          sign = value[0..1]
+        elsif ['<', '>'].include?(value[0])
+          sign = value[0]
+        end
+        sign
+      end
+
+      # less or greater to arel method
+      # @param  String  sign    > or < or => or <=
+      # @return String          Arel method
+      def get_sign_method(sign)
+        case sign
+        when '<'
+          return 'lt'
+        when '<='
+          return 'lteq'
+        when '>'
+          return 'gt'
+        when '>='
+          return 'gteq'
+        end
+      end
+
+      # hash params empty delete
+      # @param  hash    param
+      def clean_hash!(param)
+        recursive_delete_if = -> (param) {
+          param.each do |key, value|
+            if value.is_a?(Hash)
+              recursive_delete_if.call(value)
+            end
+          end
+          param.delete_if { |k, v| v.blank? }
+        }
+        recursive_delete_if.call(param) if param.is_a?(Hash)
+      end
   end
 end
