@@ -240,6 +240,13 @@ module ActiveRecordBaseExtension extend ActiveSupport::Concern
         return value
       end
 
+      # escape `%`,`_`
+      # @param  String  value
+      # @return String
+      def escape_sql_value(value)
+        value.gsub(/[%_]/, '\\\\\0')
+      end
+
       # removal of the `!`,`>`,`<`,`=>`,`=<`,`'`,`"`
       # @param  String  value
       # @return String
@@ -247,6 +254,7 @@ module ActiveRecordBaseExtension extend ActiveSupport::Concern
         value = escape_not_value(value)
         value = escape_sign_value(value)
         value = escape_quotation_value(value)
+        value = escape_sql_value(value)
         return value
       end
 
