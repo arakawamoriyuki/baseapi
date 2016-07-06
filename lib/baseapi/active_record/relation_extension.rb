@@ -50,6 +50,11 @@ module ActiveRecordRelationExtension
 
   # pager
   # @param  Hash    params
+  # count & page params example:
+  #   count
+  #     GET   /?count=10
+  #   page
+  #     GET   /?count=10&page=2
   def paging!(params)
     prefix = self.model.get_reserved_word_prefix
     count = params["#{prefix}count".to_sym].present? ? params["#{prefix}count".to_sym].to_i : -1;
@@ -66,62 +71,66 @@ module ActiveRecordRelationExtension
 
   # sort
   # @param  Hash    params
+  # order & orderby params example:
+  #   Model
+  #     class Project < ActiveRecord::Base
+  #       belongs_to  :status
+  #       belongs_to  :manager, foreign_key: 'manager_id', class_name: 'User'
+  #       belongs_to  :leader,  foreign_key: 'leader_id',  class_name: 'User'
+  #       has_many    :tasks
+  #     end
+  #   single order
+  #     GET   /?orderby=id&order=desc
+  #   multiple order
+  #     GET   /?orderby[]=name&order[]=asc&orderby[]=id&order[]=desc
+  #   belongs_to association order
+  #     GET   /?orderby=status.id&order=desc
+  #   belongs_to association order (changed the foreign key)
+  #     GET   /?orderby=manager.id&order=desc
+  #   has_many association order
+  #     GET   /?orderby=tasks.id&order=asc
   def sorting!(params)
     prefix = self.model.get_reserved_word_prefix
     if params["#{prefix}order".to_sym].present? and params["#{prefix}orderby".to_sym].present?
-      # array exchange
       orderby = params["#{prefix}orderby".to_sym]
       orderbys = orderby.instance_of?(Array) ? orderby : [orderby]
       order = params["#{prefix}order".to_sym]
       orders = order.instance_of?(Array) ? order : [order]
-      # multiple order
       orderbys.each_with_index do |orderby, index|
-        if orders[index].present? and ['DESC', 'ASC'].include?(orders[index].upcase)
-          order = orders[index].upcase
-          # dot notation  example: company.name
-          joins_tables = orderby.split(".")
-          column_name = joins_tables.pop
-          table_name = joins_tables.count > 0 ? joins_tables.last.pluralize.underscore : self.model.to_s.pluralize.underscore
-          # table_name parent table
-          parent_table_name = joins_tables.count > 1 ? joins_tables.last(2).first : self.model.to_s.pluralize.underscore
-          # parent_table get association
-          association = parent_table_name.camelize.singularize.constantize.reflect_on_association(table_name.singularize)
-          # If you have specified class_name in belongs_to method (for example, you have changed the foreign key)
-          # example:
-          # class Project < ActiveRecord::Base
-          #   belongs_to :manager, foreign_key: 'manager_id', class_name: 'User'
-          #   belongs_to :leader,  foreign_key: 'leader_id',  class_name: 'User'
-          # end
-          if association and association.options[:class_name].present?
-            association_table_name = association.options[:class_name].pluralize.underscore
-            table_alias = table_name.pluralize.underscore
-            # check
-            next if !ActiveRecord::Base.connection.tables.include?(association_table_name)
-            # join
-            joins!("INNER JOIN `#{association_table_name}` AS `#{table_alias}` ON `#{table_alias}`.`id` = `#{parent_table_name}`.`#{table_alias.singularize}_id`")
-            # order
-            order!("`#{table_alias}`.`#{column_name}` #{order}")
-          # belongs_to along the rails convention
-          # example:
-          # class Project < ActiveRecord::Base
-          #   belongs_to :manager
-          # end
-          else
-            # joins_tables exists check
-            is_next = false
-            joins_tables.each do |table|
-              is_next = true and break if !ActiveRecord::Base.connection.tables.include?(table.pluralize.underscore)
-            end
-            next if is_next
-            # table exists check
-            next if !ActiveRecord::Base.connection.tables.include?(table_name)
-            # column_name exists check
-            next if !table_name.camelize.singularize.constantize.column_names.include?(column_name)
-            # joins
-            joins_array!(joins_tables)
-            # order
-            order!("`#{table_name}`.`#{column_name}` #{order}")
-          end
+        next if orders[index].blank?
+        next unless ['DESC', 'ASC'].include?(orders[index].upcase)
+        order = orders[index].upcase
+        joins_tables = orderby.split(".")
+        column_name = joins_tables.pop
+        table_name = joins_tables.count > 0 ? joins_tables.last.pluralize.underscore : self.model.to_s.pluralize.underscore
+        parent_table_name = joins_tables.count > 1 ? joins_tables.last(2).first : self.model.to_s.pluralize.underscore
+        association = parent_table_name.camelize.singularize.constantize.reflect_on_association(table_name.singularize)
+        # belongs_to association order (changed the foreign key)
+        if association and association.options[:class_name].present?
+          association_table_name = association.options[:class_name].pluralize.underscore
+          table_alias = table_name.pluralize.underscore
+          next unless ActiveRecord::Base.connection.tables.include?(association_table_name)
+          parent_model = parent_table_name.camelize.singularize.constantize
+          association_model = association_table_name.camelize.singularize.constantize
+          # joins
+          arel_alias = association_model.arel_table.alias(table_alias)
+          joins_arel = parent_model.arel_table.join(arel_alias).on(arel_alias[:id].eq parent_model.arel_table["#{table_alias.singularize}_id".to_sym])
+          joins_arel.join_sources
+          joins!(joins_arel.join_sources)
+          # order
+          order!(arel_alias[column_name.to_sym].send(order.downcase))
+        # other order
+        else
+          # joins_tables exists check
+          next unless joins_tables.select{|table| ActiveRecord::Base.connection.tables.include?(table.pluralize.underscore) }.count == joins_tables.count
+          # table exists check
+          next unless ActiveRecord::Base.connection.tables.include?(table_name)
+          # column_name exists check
+          next unless table_name.camelize.singularize.constantize.column_names.include?(column_name)
+          # joins
+          joins_array!(joins_tables)
+          # order
+          order!(table_name.camelize.singularize.constantize.arel_table[column_name.to_sym].send(order.downcase))
         end
       end
     end
